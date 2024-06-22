@@ -12,7 +12,10 @@ typedef struct Point
     long int area;
 } point;
 
-point *readFromFile(int *count)
+int count;
+point* points;
+
+void readPointsFromFile()
 {
     int allocated = 8;
     point *ptr = (point *)malloc(allocated * sizeof(point));
@@ -25,11 +28,11 @@ point *readFromFile(int *count)
     }
 
     int first, second;
-    *count = 0;
+    count = 0;
 
     while (fscanf(file, "%3i, %3i", &first, &second) == 2)
     {
-        if (*count >= allocated)
+        if (count >= allocated)
         {
             allocated *= 2;
             point *temp = (point *)realloc(ptr, allocated * sizeof(point));
@@ -45,16 +48,16 @@ point *readFromFile(int *count)
             }
         }
 
-        (ptr + *count)->x = first;
-        (ptr + *count)->y = second;
-        *count = *count + 1;
+        (ptr + count)->x = first;
+        (ptr + count)->y = second;
+        ++count;
     }
 
     fclose(file);
-    return ptr;
+    points = ptr;
 }
 
-void printItems(point *points, int count)
+void printItems()
 {
     for (int i = 0; i < count; ++i)
         printf("%d = (%d %d)\n", (i + 1), (points + i)->x, (points + i)->y);
@@ -62,7 +65,7 @@ void printItems(point *points, int count)
     printf("\nTotal: %d points\n", count);
 }
 
-int hasFiniteArea(point *current, point *points, int count)
+int hasCorners(point *current)
 {
     int upperLeft = 0, upperRight = 0, lowerLeft = 0, lowerRight = 0;
 
@@ -91,7 +94,7 @@ int distance(int x1, int y1, int x2, int y2)
     return abs(x1 - x2) + abs(y1 - y2);
 }
 
-int closestPointIndexToCoords(int x, int y, point *points, int count)
+int closestPointIndexToCoords(int x, int y)
 {
     int closestIndex = -1;
     int closestDistance = INT_MAX;
@@ -115,7 +118,7 @@ int closestPointIndexToCoords(int x, int y, point *points, int count)
     return closestIndex;
 }
 
-int calculateArea(point *current, int currentIndex, point *points, int count)
+int calculateArea(point *current, int currentIndex)
 {
     int area = 1;
     int offset = 1;
@@ -126,28 +129,28 @@ int calculateArea(point *current, int currentIndex, point *points, int count)
         atLeastOneFound = 0;
 
         for (int i = current->y - offset; i < current->y + offset; ++i)
-            if (closestPointIndexToCoords(current->x - offset, i, points, count) == currentIndex)
+            if (closestPointIndexToCoords(current->x - offset, i) == currentIndex)
             {
                 ++area;
                 atLeastOneFound = 1;
             }
 
         for (int i = current->x - offset; i < current->x + offset; ++i)
-            if (closestPointIndexToCoords(i, current->y + offset, points, count) == currentIndex)
+            if (closestPointIndexToCoords(i, current->y + offset) == currentIndex)
             {
                 ++area;
                 atLeastOneFound = 1;
             }
 
         for (int i = current->y + offset; i > current->y - offset; --i)
-            if (closestPointIndexToCoords(current->x + offset, i, points, count) == currentIndex)
+            if (closestPointIndexToCoords(current->x + offset, i) == currentIndex)
             {
                 ++area;
                 atLeastOneFound = 1;
             }
 
         for (int i = current->x + offset; i > current->x - offset; --i)
-            if (closestPointIndexToCoords(i, current->y - offset, points, count) == currentIndex)
+            if (closestPointIndexToCoords(i, current->y - offset) == currentIndex)
             {
                 ++area;
                 atLeastOneFound = 1;
@@ -159,7 +162,7 @@ int calculateArea(point *current, int currentIndex, point *points, int count)
     return area;
 }
 
-void solvePart1(point *points, int count)
+void solvePart1()
 {
     int maxArea = -1;
 
@@ -167,9 +170,9 @@ void solvePart1(point *points, int count)
     {
         point *current = (points + i);
 
-        if (hasFiniteArea(current, points, count) == 1)
+        if (hasCorners(current))
         {
-            int currentArea = calculateArea(current, i, points, count);
+            int currentArea = calculateArea(current, i);
             printf("Point %d has finite area: %d\n", i + 1, currentArea);
 
             if (currentArea > maxArea)
@@ -187,11 +190,10 @@ void solvePart1(point *points, int count)
 
 int main()
 {
-    int count;
-    point *points = readFromFile(&count);
+    readPointsFromFile();
 
-    printItems(points, count);
-    solvePart1(points, count);
+    printItems();
+    solvePart1();
 
     free(points);
     return 0;
