@@ -3,7 +3,9 @@
 #include <stdlib.h>
 
 const char FILENAME[] = "input.txt";
+const int TOTAL_DISTANCE_LIMIT = 10000;
 // const char FILENAME[] = "test.txt";
+// const int TOTAL_DISTANCE_LIMIT = 32;
 
 typedef struct Point
 {
@@ -79,9 +81,9 @@ void initializeEdgeCoords()
     }
 }
 
-int distance(int x1, int y1, int x2, int y2)
+int distanceBetween(int x1, int y1, point point)
 {
-    return abs(x1 - x2) + abs(y1 - y2);
+    return abs(x1 - point.x) + abs(y1 - point.y);
 }
 
 int closestPointIndexToCoords(int x, int y)
@@ -92,7 +94,7 @@ int closestPointIndexToCoords(int x, int y)
     for (int i = 0; i < count; ++i)
     {
         point currentPoint = *(points + i);
-        int currentDistance = distance(x, y, currentPoint.x, currentPoint.y);
+        int currentDistance = distanceBetween(x, y, currentPoint);
 
         if (currentDistance < closestDistance)
         {
@@ -220,6 +222,21 @@ int calculateArea(point *current, int currentIndex)
     return area;
 }
 
+int isSafeLocation(int x, int y)
+{
+    int sumOfDistances = 0;
+
+    for (int i = 0; i < count; ++i)
+    {
+        sumOfDistances += distanceBetween(x, y, *(points + i));
+
+        if (sumOfDistances >= TOTAL_DISTANCE_LIMIT)
+            return 0;
+    }
+
+    return 1;
+}
+
 void solvePart1()
 {
     int maxArea = -1;
@@ -243,7 +260,22 @@ void solvePart1()
     if (maxArea != -1)
         printf("\nPart 1. Max finite area is %d\n", maxArea);
     else
-        printf("\nPart 1. There is no finite areas there or something went wrong . . .\n");
+        printf("\nPart 1. There is no finite area there or something went wrong . . .\n");
+}
+
+void solvePart2()
+{
+    int safeRegionArea = 0;
+
+    for (int i = minCoords.x; i <= maxCoords.x; ++i)
+        for (int j = minCoords.y; j <= maxCoords.y; ++j)
+            if (isSafeLocation(i, j))
+                ++safeRegionArea;
+
+    if (safeRegionArea > 0)
+        printf("Part 2. Safe region area is %d\n", safeRegionArea);
+    else
+        printf("Part 2. There is no safe region there or something went wrong . . .\n");
 }
 
 int main()
@@ -252,6 +284,7 @@ int main()
     initializeEdgeCoords();
 
     solvePart1();
+    solvePart2();
 
     free(points);
     return 0;
