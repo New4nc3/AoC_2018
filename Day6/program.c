@@ -2,8 +2,8 @@
 #include <string.h>
 #include <stdlib.h>
 
-// const char FILENAME[] = "input.txt";
-const char FILENAME[] = "test.txt";
+const char FILENAME[] = "input.txt";
+// const char FILENAME[] = "test.txt";
 
 typedef struct Point
 {
@@ -13,7 +13,8 @@ typedef struct Point
 } point;
 
 int count;
-point* points;
+point *points;
+point minCoords, maxCoords;
 
 void readPointsFromFile()
 {
@@ -57,36 +58,25 @@ void readPointsFromFile()
     points = ptr;
 }
 
-void printItems()
+void initializeEdgeCoords()
 {
-    for (int i = 0; i < count; ++i)
-        printf("%d = (%d %d)\n", (i + 1), (points + i)->x, (points + i)->y);
-
-    printf("\nTotal: %d points\n", count);
-}
-
-int hasCorners(point *current)
-{
-    int upperLeft = 0, upperRight = 0, lowerLeft = 0, lowerRight = 0;
+    minCoords = *points;
+    maxCoords = *points;
 
     for (int i = 0; i < count; ++i)
     {
-        point iter = *(points + i);
+        point current = *(points + i);
 
-        if (upperLeft != 1 && iter.x < current->x && iter.y < current->y)
-            upperLeft = 1;
-        if (upperRight != 1 && iter.x > current->x && iter.y < current->y)
-            upperRight = 1;
-        if (lowerLeft != 1 && iter.x < current->x && iter.y > current->y)
-            lowerLeft = 1;
-        if (lowerRight != 1 && iter.x > current->x && iter.y > current->y)
-            lowerRight = 1;
+        if (current.x < minCoords.x)
+            minCoords.x = current.x;
+        else if (current.x > maxCoords.x)
+            maxCoords.x = current.x;
 
-        if (upperLeft == 1 && upperRight == 1 && lowerLeft == 1 && lowerRight == 1)
-            return 1;
+        if (current.y < minCoords.y)
+            minCoords.y = current.y;
+        else if (current.y > maxCoords.y)
+            maxCoords.y = current.y;
     }
-
-    return 0;
 }
 
 int distance(int x1, int y1, int x2, int y2)
@@ -116,6 +106,74 @@ int closestPointIndexToCoords(int x, int y)
     }
 
     return closestIndex;
+}
+
+int hasCorners(point *current)
+{
+    int upperLeft = 0, upperRight = 0, lowerLeft = 0, lowerRight = 0;
+
+    for (int i = 0; i < count; ++i)
+    {
+        point iter = *(points + i);
+
+        if (upperLeft != 1 && iter.x < current->x && iter.y < current->y)
+            upperLeft = 1;
+        if (upperRight != 1 && iter.x > current->x && iter.y < current->y)
+            upperRight = 1;
+        if (lowerLeft != 1 && iter.x < current->x && iter.y > current->y)
+            lowerLeft = 1;
+        if (lowerRight != 1 && iter.x > current->x && iter.y > current->y)
+            lowerRight = 1;
+
+        if (upperLeft == 1 && upperRight == 1 && lowerLeft == 1 && lowerRight == 1)
+            return 1;
+    }
+
+    return 0;
+}
+
+int hasBorders(point *current, int currentIndex)
+{
+    int leftBordered = 0, upBordered = 0, rightBordered = 0, bottomBordered = 0;
+
+    for (int i = current->x - 1; i >= minCoords.x; --i)
+        if (closestPointIndexToCoords(i, current->y) != currentIndex)
+        {
+            leftBordered = 1;
+            break;
+        }
+
+    if (leftBordered == 0)
+        return 0;
+
+    for (int i = current->y - 1; i >= minCoords.y; --i)
+        if (closestPointIndexToCoords(current->x, i) != currentIndex)
+        {
+            upBordered = 1;
+            break;
+        }
+
+    if (upBordered == 0)
+        return 0;
+
+    for (int i = current->x + 1; i <= maxCoords.x; ++i)
+        if (closestPointIndexToCoords(i, current->y) != currentIndex)
+        {
+            rightBordered = 1;
+            break;
+        }
+
+    if (rightBordered == 0)
+        return 0;
+
+    for (int i = current->y + 1; i <= maxCoords.y; ++i)
+        if (closestPointIndexToCoords(current->x, i) != currentIndex)
+        {
+            bottomBordered = 1;
+            break;
+        }
+
+    return bottomBordered;
 }
 
 int calculateArea(point *current, int currentIndex)
@@ -157,7 +215,7 @@ int calculateArea(point *current, int currentIndex)
             }
 
         ++offset;
-    } while (atLeastOneFound == 1);
+    } while (atLeastOneFound);
 
     return area;
 }
@@ -170,7 +228,7 @@ void solvePart1()
     {
         point *current = (points + i);
 
-        if (hasCorners(current))
+        if (hasCorners(current) && hasBorders(current, i))
         {
             int currentArea = calculateArea(current, i);
             printf("Point %d has finite area: %d\n", i + 1, currentArea);
@@ -183,16 +241,16 @@ void solvePart1()
     }
 
     if (maxArea != -1)
-        printf("Part 1. Max finite area is %d\n", maxArea);
+        printf("\nPart 1. Max finite area is %d\n", maxArea);
     else
-        printf("Part 1. There is no finite areas there or something went wrong . . .\n");
+        printf("\nPart 1. There is no finite areas there or something went wrong . . .\n");
 }
 
 int main()
 {
     readPointsFromFile();
+    initializeEdgeCoords();
 
-    printItems();
     solvePart1();
 
     free(points);
