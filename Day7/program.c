@@ -24,16 +24,41 @@ requirement *findRequirementWithValue(requirement *current, char value)
         return findRequirementWithValue(current->next + i, value);
 }
 
+requirement *mallocRequirement(int count)
+{
+    requirement *ptr = (requirement *)malloc(count * sizeof(requirement));
+
+    if (ptr == NULL)
+    {
+        printf("Can't allocate memory. Aborting . . .");
+        exit(1);
+    }
+
+    return ptr;
+}
+
+requirement *reallocRequirement(requirement *original, int count)
+{
+    requirement *ptr = (requirement *)realloc(original, count * sizeof(requirement));
+
+    if (ptr == NULL)
+    {
+        printf("Can't reallocate memory for storing %d nodes. Aborting . . .", count);
+        exit(1);
+    }
+
+    return ptr;
+}
+
 void initialize(char first, char second)
 {
     if (root == NULL)
     {
-        root = (requirement *)malloc(sizeof(requirement));
-        *root = (requirement){.value = first, .next = NULL, .count = 1};
-        requirement *tempPtr = (requirement *)malloc(sizeof(requirement));
-        root->next = tempPtr;
-        *(root->next) = (requirement){.value = second, .next = NULL, .count = 0};
         rootCount = 1;
+        root = mallocRequirement(rootCount);
+        *root = (requirement){.value = first, .next = NULL, .count = 1};
+        root->next = mallocRequirement(1);
+        *(root->next) = (requirement){.value = second, .next = NULL, .count = 0};
     }
     else
     {
@@ -45,27 +70,9 @@ void initialize(char first, char second)
             {
                 ++reqWithValue->count;
                 if (reqWithValue->count == 1)
-                {
-                    requirement *nextPtr = (requirement *)malloc(sizeof(requirement));
-                    if (nextPtr == NULL)
-                    {
-                        printf("Can't allocate memory for storing next nodes. Aborting . . .");
-                        exit(1);
-                    }
-                    else
-                        reqWithValue->next = nextPtr;
-                }
+                    reqWithValue->next = mallocRequirement(1);
                 else
-                {
-                    requirement *tempRealloc = (requirement *)realloc(reqWithValue->next, reqWithValue->count * sizeof(requirement));
-                    if (tempRealloc == NULL)
-                    {
-                        printf("Can't reallocate memory for storing %d subnodes. Aborting . . .", reqWithValue->count);
-                        exit(1);
-                    }
-                    else
-                        reqWithValue->next = tempRealloc;
-                }
+                    reqWithValue->next = reallocRequirement(reqWithValue->next, reqWithValue->count);
 
                 *(reqWithValue->next + (reqWithValue->count) - 1) = (requirement){.value = second, .next = NULL, .count = 0};
                 found = 1;
@@ -76,15 +83,7 @@ void initialize(char first, char second)
         if (found == 0)
         {
             ++rootCount;
-            requirement *tempPtr = (requirement *)realloc(root, rootCount * sizeof(requirement));
-            if (tempPtr == NULL)
-            {
-                printf("Can't reallocate memory for storing root %d nodes. Aborting . . .", rootCount);
-                exit(1);
-            }
-            else
-                root = tempPtr;
-
+            root = reallocRequirement(root, rootCount);
             *(root + rootCount - 1) = (requirement){.value = second, .next = NULL, .count = 0};
         }
     }
@@ -115,27 +114,46 @@ void initRootFromFile()
 
 void disposeNodeRecursively(requirement *node)
 {
-    if (node->next != NULL)
+    if (node->next == NULL)
     {
-        for (int i = 0; i < node->count; ++i)
-        {
-            disposeNodeRecursively(node->next + i);
-            printf("Disposing: %c\n", (node->next + i)->value);
-            free(node->next + i);
-        }
+        printf("Disposing: %c\n", node->value);
+        free(node);
+        return;
     }
+
+    for (int i = 0; i < node->count; ++i)
+        disposeNodeRecursively(node->next + i);
 }
 
 void disposeRequirements()
 {
     for (int i = 0; i < rootCount; ++i)
+    {
         disposeNodeRecursively(root + i);
+        free(root + i);
+    }
+}
+
+void printRecursively(requirement *node)
+{
+    if (node->next == NULL)
+    {
+        printf("%c <- ", node->value);
+        return;
+    }
+
+    for (int i = 0; i < node->count; ++i)
+        printRecursively(node->next + i);
 }
 
 int main()
 {
     initRootFromFile();
 
+    // for (int i = 0; i < rootCount; ++i)
+    //     printRecursively(root + i);
+
     disposeRequirements();
+    printf("DONT CRASH");
     return 0;
 }
