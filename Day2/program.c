@@ -16,34 +16,41 @@ typedef struct
     int count;
 } LetterCount;
 
-typedef struct
-{
-    const char *string;
-} String;
-
 int initializedLetters, initializedStrings = 0, allocatedStrings = 8;
 
 LetterCount *letterCounter;
-String *strings;
+char **strings;
 
 void InitializeLettersCounter()
 {
     letterCounter = (LetterCount *)malloc(sizeof(LetterCount) * ALLOCATED_LETTERS);
     if (letterCounter == NULL)
     {
-        printf("Can't allocated memory to store %d letters. Aborting . . .", ALLOCATED_LETTERS);
+        printf("Can't allocate memory to store %d letters. Aborting . . .", ALLOCATED_LETTERS);
         exit(1);
     }
 }
 
 void InitializeStrings()
 {
-    strings = (String *)malloc(sizeof(String) * allocatedStrings);
+    strings = (char **)malloc(sizeof(char *) * allocatedStrings);
     if (strings == NULL)
     {
         printf("Can't allocate memory to store %d strings. Aborting . . .");
         exit(1);
     }
+}
+
+void InitializeString(int index)
+{
+    char *stringPtr = (char *)malloc(sizeof(char) * LINE_MAX_SIZE);
+    if (stringPtr == NULL)
+    {
+        printf("Can't allocate memory to store %d chars. Aborting . . .", LINE_MAX_SIZE);
+        exit(1);
+    }
+    else
+        strings[index] = stringPtr;
 }
 
 int IndexOf(char letter)
@@ -109,7 +116,7 @@ int main()
         if (initializedStrings >= allocatedStrings)
         {
             allocatedStrings *= 2;
-            String *reallocPtr = (String *)realloc(strings, sizeof(String) * allocatedStrings);
+            char **reallocPtr = (char **)realloc(strings, sizeof(char *) * allocatedStrings);
             if (reallocPtr == NULL)
             {
                 printf("Can't realloc memory for storing %d strings. Aborting . . .", allocatedStrings);
@@ -119,19 +126,71 @@ int main()
                 strings = reallocPtr;
         }
 
-        char copiedBuffer[64];
-        strcpy(copiedBuffer, bufferStr);
-        strings[initializedStrings++] = (String){.string = copiedBuffer};
+        InitializeString(initializedStrings);
+        strcpy(strings[initializedStrings], bufferStr);
+        ++initializedStrings;
 
-        printf("\"%s\": %li\n", strings[initializedStrings - 1].string, strlen(bufferStr));
+        printf("\"%s\": %li\n", strings[initializedStrings - 1], strlen(bufferStr));
     }
 
     fclose(filePtr);
     free(letterCounter);
 
+    int foundSimilar = 0;
+    char similarResult[LINE_MAX_SIZE];
+
+    for (int i = 0; i < initializedStrings - 1; ++i)
+    {
+        char *string1 = strings[i];
+        int length = strlen(string1);
+        int diffIndex = -1;
+
+        for (int j = i + 1; j < initializedStrings; ++j)
+        {
+            char *string2 = strings[j];
+
+            if (length != strlen(string2))
+                break;
+
+            int differences = 0;
+            for (int k = 0; k < length; ++k)
+                if (string1[k] != string2[k])
+                {
+                    diffIndex = k;
+                    ++differences;
+
+                    if (differences > 1)
+                        break;
+                }
+
+            if (differences == 1)
+            {
+                foundSimilar = 1;
+                break;
+            }
+        }
+
+        if (foundSimilar)
+        {
+            int tmp = 0;
+            for (int k = 0; k < length; ++k)
+                if (k != diffIndex)
+                    similarResult[tmp++] = string1[k];
+
+            similarResult[length - 1] = '\0';
+            break;
+        }
+    }
+
+    free(strings);
+
     printf("\nTotal: %d\n", initializedStrings);
     printf("\nPart 1. Checksum is %d * %d = %d\n", appearsTwice, appearsTriple, appearsTwice * appearsTriple);
 
-    free(strings);
+    if (foundSimilar)
+        printf("Part 2. Similar strings with exactly one diff (without diff char): \"%s\"\n", similarResult);
+    else
+        printf("Part 2. Similar strings are not found\n");
+
     return 0;
 }
