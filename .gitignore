@@ -1,6 +1,9 @@
 .vscode/*
 !.vscode/tasks.json
 
+bin
+obj
+
 program
 !program.c
 
