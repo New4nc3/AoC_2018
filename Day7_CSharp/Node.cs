@@ -1,6 +1,7 @@
 class Node
 {
     public bool Launched { get; private set; }
+    public bool ReservedByWorker { get; private set; }
     public bool MeetsRequirements => Requirements.Count == 0 || Requirements.All(x => x.Launched);
 
     public char Name { get; }
@@ -20,6 +21,12 @@ class Node
         Console.Write(Name);
         Launched = true;
     }
+
+    public void SetAsReservedByWorker() =>
+        ReservedByWorker = true;
+
+    public void ReleaseAsReservedByWorker() =>
+        ReservedByWorker = false;
 
     public override string ToString() =>
         $"{Name} {MeetsRequirements} {Launched}";

@@ -6,7 +6,7 @@
     static void Main()
     {
         var nodeProcessor = new NodeProcessor(INPUT);
-        nodeProcessor.SolvePart1();
+        nodeProcessor.SolvePart2();
 
         Console.WriteLine("\nPress any key to exit . . .");
         Console.Read();
