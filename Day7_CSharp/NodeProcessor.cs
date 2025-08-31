@@ -1,14 +1,14 @@
 class NodeProcessor
 {
     private string _filename;
-    private Dictionary<char, Node> _nodeMap;
     private HashSet<char> _roots;
+    private Dictionary<char, Node> _nodeMap;
 
     public NodeProcessor(string filename)
     {
         _filename = filename;
-        _nodeMap = new Dictionary<char, Node>();
         _roots = new HashSet<char>();
+        _nodeMap = new Dictionary<char, Node>();
 
         Initialize();
     }
@@ -17,10 +17,11 @@ class NodeProcessor
     {
         const int START_IDX = 5;
         const int LAST_IDX = 36;
+        const string END_LINE = "\r\n";
 
         string[] data;
         using (var streamReader = new StreamReader(_filename))
-            data = streamReader.ReadToEnd().Split("\r\n");
+            data = streamReader.ReadToEnd().Split(END_LINE);
 
         var last = new HashSet<char>();
         foreach (var entry in data)
@@ -55,5 +56,34 @@ class NodeProcessor
     }
 
     public void SolvePart1()
-    { }
+    {
+        var candidates = _roots.ToList();
+        candidates.Sort((x, y) => x.CompareTo(y));
+
+        var startNode = _nodeMap[candidates.First()];
+        var queue = candidates
+            .Skip(1)
+            .Select(x => _nodeMap[x]);
+
+        Console.Write("Part 1. ");
+        IterateRecursive(startNode, queue);
+        Console.WriteLine();
+    }
+
+    private void IterateRecursive(Node start, IEnumerable<Node> queue)
+    {
+        Console.Write(start.Name);
+
+        if (start.NextSteps.Count == 0 && !queue.Any())
+            return;
+
+        var candidates = start.NextSteps
+            .Concat(queue)
+            .Distinct()
+            .OrderBy(x => x.NextSteps.Count == 0 ? 1 : 0)
+            .ThenBy(x => x.Name)
+            .ToList();
+
+        IterateRecursive(candidates.First(), candidates.Skip(1));
+    }
 }
