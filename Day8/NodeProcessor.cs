@@ -1,6 +1,7 @@
 class NodeProcessor
 {
     public int[] RawInput { get; }
+    public Node? Root { get; private set; }
     public Dictionary<char, Node> Nodes { get; }
 
     private int _carette;
@@ -31,7 +32,10 @@ class NodeProcessor
             var childCount = RawInput[_carette++];
             var metadataCount = RawInput[_carette++];
 
-            ProcessNodeRecursively(childCount, metadataCount);
+            if (Root != null)
+                throw new ArgumentException("There is more than one root, please check input data");
+
+            Root = ProcessNodeRecursively(childCount, metadataCount);
         }
     }
 
@@ -58,4 +62,7 @@ class NodeProcessor
         Nodes.Values
             .SelectMany(x => x.Metadatas)
             .Sum();
+
+    public int Part2() =>
+        Root?.Value ?? -1;
 }
