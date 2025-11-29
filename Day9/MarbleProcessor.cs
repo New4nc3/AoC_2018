@@ -1,28 +1,30 @@
 class MarbleProcessor
 {
     public int PlayersCount { get; }
-    public int LastMarbleValue { get; }
+    public ulong LastMarbleValue { get; private set; }
 
-    public List<int> Marbles { get; }
-    public Dictionary<int, int> Players { get; }
+    public List<ulong> Marbles { get; }
+    public Dictionary<int, ulong> Players { get; }
 
-
-    public MarbleProcessor(int players, int lastMarbleValue)
+    public MarbleProcessor(int players, ulong lastMarbleValue)
     {
         (PlayersCount, LastMarbleValue) = (players, lastMarbleValue);
 
-        Marbles = new List<int>();
-        Players = new Dictionary<int, int>();
+        Marbles = new List<ulong>();
+        Players = new Dictionary<int, ulong>();
     }
 
-    public void Solve()
+    public void Solve(bool part2)
     {
         InitMarbles();
         InitPlayers();
 
+        if (part2)
+            LastMarbleValue *= 100;
+
         int currentMarbleIndex = 0;
         int currentPlayerIndex = 0;
-        int marbleValue = 1;
+        ulong marbleValue = 1;
 
         while (marbleValue <= LastMarbleValue)
         {
@@ -62,7 +64,7 @@ class MarbleProcessor
             ++marbleValue;
         }
 
-        Console.WriteLine($"Part 1. Max score: {Players.Values.Max()}");
+        Console.WriteLine($"Part {(part2 ? "2" : "1")}. Max score: {Players.Values.Max()}");
     }
 
     private void InitMarbles()
