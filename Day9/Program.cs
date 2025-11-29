@@ -1,15 +1,13 @@
 ﻿class Program
 {
-    private const string INPUT = @"..\..\..\test.txt";
-    //private const string INPUT = @"..\..\..\input.txt";
+    //private const string INPUT = @"..\..\..\test.txt";
+    private const string INPUT = @"..\..\..\input.txt";
 
     static void Main()
     {
-        var input = ReadFromFile(INPUT);
-        MarbleProcessor marbleProcessor = new MarbleProcessor(input.Players, input.LastMarble);
-        marbleProcessor.Part1();
-
-        Console.WriteLine($"{input.Players}, {input.LastMarble}");
+        var (Players, LastMarble) = ReadFromFile(INPUT);
+        MarbleProcessor marbleProcessor = new MarbleProcessor(Players, LastMarble);
+        marbleProcessor.Solve();
     }
 
     static (int Players, int LastMarble) ReadFromFile(string filename)
