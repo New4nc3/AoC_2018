@@ -3,14 +3,14 @@ class MarbleProcessor
     public int PlayersCount { get; }
     public ulong LastMarbleValue { get; private set; }
 
-    public List<ulong> Marbles { get; }
+    public LinkedList<ulong> Marbles { get; }
     public Dictionary<int, ulong> Players { get; }
 
     public MarbleProcessor(int players, ulong lastMarbleValue)
     {
         (PlayersCount, LastMarbleValue) = (players, lastMarbleValue);
 
-        Marbles = new List<ulong>();
+        Marbles = new LinkedList<ulong>();
         Players = new Dictionary<int, ulong>();
     }
 
@@ -22,7 +22,7 @@ class MarbleProcessor
         if (part2)
             LastMarbleValue *= 100;
 
-        int currentMarbleIndex = 0;
+        var currentMarble = Marbles.First;
         int currentPlayerIndex = 0;
         ulong marbleValue = 1;
 
@@ -32,29 +32,26 @@ class MarbleProcessor
             {
                 Players[currentPlayerIndex] += marbleValue;
 
-                var indexToRemoveAt = GetSeventhCounterClockwiseIndexFor(currentMarbleIndex);
-                Players[currentPlayerIndex] += Marbles[indexToRemoveAt];
-                Marbles.RemoveAt(indexToRemoveAt);
+                for (var i = 0; i < 7; ++i)
+                {
+                    currentMarble = currentMarble.Previous;
+                    if (currentMarble == null)
+                        currentMarble = Marbles.Last;
+                }
 
-                currentMarbleIndex = indexToRemoveAt;
-                if (currentMarbleIndex == Marbles.Count)
-                    currentMarbleIndex = 0;
+                var valueToReference = currentMarble.Next;
+                Players[currentPlayerIndex] += currentMarble.Value;
+                Marbles.Remove(currentMarble);
+                currentMarble = valueToReference;
             }
             else
             {
-                var firstClockwiseIndex = GetNextClockwiseIndexFor(currentMarbleIndex);
-                var secondClockwiseIndex = GetNextClockwiseIndexFor(firstClockwiseIndex);
+                currentMarble = currentMarble.Next;
+                if (currentMarble == null)
+                    currentMarble = Marbles.First;
 
-                if (firstClockwiseIndex < secondClockwiseIndex)
-                {
-                    currentMarbleIndex = secondClockwiseIndex;
-                    Marbles.Insert(currentMarbleIndex, marbleValue);
-                }
-                else
-                {
-                    Marbles.Add(marbleValue);
-                    currentMarbleIndex = Marbles.Count - 1;
-                }
+                Marbles.AddAfter(currentMarble, marbleValue);
+                currentMarble = currentMarble.Next;
             }
 
             ++currentPlayerIndex;
@@ -70,7 +67,7 @@ class MarbleProcessor
     private void InitMarbles()
     {
         Marbles.Clear();
-        Marbles.Add(0);
+        Marbles.AddFirst(0);
     }
 
     private void InitPlayers()
@@ -79,25 +76,5 @@ class MarbleProcessor
 
         for (var i = 0; i < PlayersCount; ++i)
             Players.Add(i, 0);
-    }
-
-    private int GetNextClockwiseIndexFor(int currentIndex)
-    {
-        ++currentIndex;
-
-        if (currentIndex >= Marbles.Count)
-            return 0;
-
-        return currentIndex;
-    }
-
-    private int GetSeventhCounterClockwiseIndexFor(int currentIndex)
-    {
-        currentIndex -= 7;
-
-        if (currentIndex < 0)
-            return Marbles.Count + currentIndex;
-
-        return currentIndex;
     }
 }
