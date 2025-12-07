@@ -34,12 +34,12 @@ class MarbleProcessor
 
                 for (var i = 0; i < 7; ++i)
                 {
-                    currentMarble = currentMarble.Previous;
+                    currentMarble = currentMarble!.Previous;
                     if (currentMarble == null)
                         currentMarble = Marbles.Last;
                 }
 
-                var valueToReference = currentMarble.Next;
+                var valueToReference = currentMarble!.Next;
                 if (valueToReference == null)
                     valueToReference = Marbles.First;
 
@@ -49,12 +49,12 @@ class MarbleProcessor
             }
             else
             {
-                currentMarble = currentMarble.Next;
+                currentMarble = currentMarble!.Next;
                 if (currentMarble == null)
                     currentMarble = Marbles.First;
 
-                Marbles.AddAfter(currentMarble, (ulong)marbleValue);
-                currentMarble = currentMarble.Next;
+                Marbles.AddAfter(currentMarble!, (ulong)marbleValue);
+                currentMarble = currentMarble!.Next;
             }
 
             ++currentPlayerIndex;
