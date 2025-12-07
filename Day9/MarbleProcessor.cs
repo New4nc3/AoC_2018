@@ -1,12 +1,12 @@
 class MarbleProcessor
 {
     public int PlayersCount { get; }
-    public ulong LastMarbleValue { get; private set; }
+    public int LastMarbleValue { get; private set; }
 
     public LinkedList<ulong> Marbles { get; }
     public Dictionary<int, ulong> Players { get; }
 
-    public MarbleProcessor(int players, ulong lastMarbleValue)
+    public MarbleProcessor(int players, int lastMarbleValue)
     {
         (PlayersCount, LastMarbleValue) = (players, lastMarbleValue);
 
@@ -24,13 +24,13 @@ class MarbleProcessor
 
         var currentMarble = Marbles.First;
         int currentPlayerIndex = 0;
-        ulong marbleValue = 1;
+        int marbleValue = 1;
 
         while (marbleValue <= LastMarbleValue)
         {
             if (marbleValue % 23 == 0)
             {
-                Players[currentPlayerIndex] += marbleValue;
+                Players[currentPlayerIndex] += (ulong)marbleValue;
 
                 for (var i = 0; i < 7; ++i)
                 {
@@ -40,6 +40,9 @@ class MarbleProcessor
                 }
 
                 var valueToReference = currentMarble.Next;
+                if (valueToReference == null)
+                    valueToReference = Marbles.First;
+
                 Players[currentPlayerIndex] += currentMarble.Value;
                 Marbles.Remove(currentMarble);
                 currentMarble = valueToReference;
@@ -50,7 +53,7 @@ class MarbleProcessor
                 if (currentMarble == null)
                     currentMarble = Marbles.First;
 
-                Marbles.AddAfter(currentMarble, marbleValue);
+                Marbles.AddAfter(currentMarble, (ulong)marbleValue);
                 currentMarble = currentMarble.Next;
             }
 

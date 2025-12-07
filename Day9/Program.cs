@@ -12,13 +12,13 @@
         marbleProcessor.Solve(part2: true);
     }
 
-    static (int Players, ulong LastMarble) ReadFromFile(string filename)
+    static (int Players, int LastMarble) ReadFromFile(string filename)
     {
         string[] inputWords;
         using (StreamReader streamReader = new StreamReader(filename))
             inputWords = streamReader.ReadLine()
                 ?.Split(" ") ?? new string[0];
 
-        return (Convert.ToInt32(inputWords[0]), Convert.ToUInt64(inputWords[6]));
+        return (Convert.ToInt32(inputWords[0]), Convert.ToInt32(inputWords[6]));
     }
 }
